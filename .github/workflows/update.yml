@@ -3,139 +3,31 @@ name: Update Taiwan Parking Data
 on:
   workflow_dispatch:
   schedule:
-  - cron: "*/30 * * * *"
+    - cron: "*/30 * * * *"
 
 permissions:
   contents: write
-
 
 jobs:
   update:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Install jq
-        run: sudo apt-get install jq -y
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-      - name: Create folders
-        run: |
-          mkdir -p taipei new_taipei taoyuan taichung tainan kaohsiung
+      - run: pip install requests
 
-      ################################################################
-      # 🔵 台北 — JSON API（穩定）
-      ################################################################
-      - name: Taipei
-        run: |
-          URL="https://tcgbusfs.blob.core.windows.net/blobtcmsv/TCMSV_alldesc.json"
-          FILE="taipei/parking.json"
+      - run: python update_parking.py
 
-          curl -L "$URL" -o tmp.json || true
-
-          if cat tmp.json | jq empty > /dev/null 2>&1; then
-            jq '. + {updated_at: now|tojson , source_status:"live"}' tmp.json > "$FILE"
-          else
-            echo 'API error, keeping fallback'
-            jq '. + {updated_at: now|tojson , source_status:"fallback"}' "$FILE" > tmp2.json || true
-            mv tmp2.json "$FILE" || true
-          fi
-
-      ################################################################
-      # 🟡 新北 — 有時會壞/格式怪
-      ################################################################
-      - name: New Taipei
-        run: |
-          URL="https://data.ntpc.gov.tw/api/datasets/71C63833-3709-44B1-9F48-19E7AC5C37D5/json"
-          FILE="new_taipei/parking.json"
-
-          curl -L "$URL" -o tmp.json || true
-
-          if cat tmp.json | jq empty > /dev/null 2>&1; then
-            jq '. + {updated_at: now|tojson , source_status:"live"}' tmp.json > "$FILE"
-          else
-            echo 'New Taipei API not JSON, fallback'
-            jq '. + {updated_at: now|tojson , source_status:"fallback"}' "$FILE" > tmp2.json || true
-            mv tmp2.json "$FILE" || true
-          fi
-
-      ################################################################
-      # 🟠 桃園 — 偶爾 SSL/連不通
-      ################################################################
-      - name: Taoyuan
-        run: |
-          URL="https://data.tycg.gov.tw/opendata/datalist/datasetMeta/download?id=cfb2f59a-5310-4a0d-8a07-89bb8422d58b&rid=7f5883aa-c771-417a-9a89-48d5575e90c0"
-          FILE="taoyuan/parking.json"
-
-          curl -L "$URL" -o tmp.json || true
-
-          if cat tmp.json | jq empty > /dev/null 2>&1; then
-            jq '. + {updated_at: now|tojson , source_status:"live"}' tmp.json > "$FILE"
-          else
-            echo 'Tycg API failed, fallback'
-            jq '. + {updated_at: now|tojson , source_status:"fallback"}' "$FILE" > tmp2.json || true
-            mv tmp2.json "$FILE" || true
-          fi
-
-      ################################################################
-      # 🔴 台中
-      ################################################################
-      - name: Taichung
-        run: |
-          URL="https://datacenter.taichung.gov.tw/swagger/OpenData/fb457b2d-df7e-48fb-a66f-ef3b725f0c15"
-          FILE="taichung/parking.json"
-
-          curl -L "$URL" -o tmp.json || true
-
-          if cat tmp.json | jq empty > /dev/null 2>&1; then
-            jq '. + {updated_at: now|tojson , source_status:"live"}' tmp.json > "$FILE"
-          else
-            jq '. + {updated_at: now|tojson , source_status:"fallback"}' "$FILE" > tmp2.json || true
-            mv tmp2.json "$FILE" || true
-          fi
-
-      ################################################################
-      # 🟣 台南 — 常常 DNS/SSL 問題
-      ################################################################
-      - name: Tainan
-        run: |
-          URL="https://api.tainan.gov.tw/parking/v1/OffStreet/CarPark"
-          FILE="tainan/parking.json"
-
-          curl -L "$URL" -o tmp.json || true
-
-          if cat tmp.json | jq empty > /dev/null 2>&1; then
-            jq '. + {updated_at: now|tojson , source_status:"live"}' tmp.json > "$FILE"
-          else
-            jq '. + {updated_at: now|tojson , source_status:"fallback"}' "$FILE" > tmp2.json || true
-            mv tmp2.json "$FILE" || true
-          fi
-
-      ################################################################
-      # 🟢 高雄
-      ################################################################
-      - name: Kaohsiung
-        run: |
-          URL="https://api.kcg.gov.tw/api/service/Get/75dfc8f6-4b31-4dbf-bdb4-4a37f1319304"
-          FILE="kaohsiung/parking.json"
-
-          curl -L "$URL" -o tmp.json || true
-
-          if cat tmp.json | jq empty > /dev/null 2>&1; then
-            jq '. + {updated_at: now|tojson , source_status:"live"}' tmp.json > "$FILE"
-          else
-            jq '. + {updated_at: now|tojson , source_status:"fallback"}' "$FILE" > tmp2.json || true
-            mv tmp2.json "$FILE" || true
-          fi
-
-      ################################################################
-      # 📌 Commit updates
-      ################################################################
       - name: Commit and push
         run: |
           git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add .
-          git commit -m "Auto update parking data $(date '+%Y-%m-%d %H:%M:%S')" || true
+          git config user.email "actions@github.com"
+          git add data/*.json
+          git commit -m "Auto update parking data $(date -u '+%Y-%m-%d %H:%M:%S')" || echo "No changes"
           git push
+        continue-on-error: true
