@@ -31,15 +31,16 @@ jobs:
           curl -L "https://data.ntpc.gov.tw/api/datasets/010C3921-3B8C-43C6-B787-A0CC4EBC57BB/json/preview" -o newtaipei/parking.json
       
       - name: Download Taoyuan Parking
-        run: curl -L --insecure "https://data.tycg.gov.tw/opendata/datalist/datasetMeta/download?id=c2b2f59a-5310-4ad0-8a07-8b9bb8422d58&rid=75F883aa-c771-417a-9a80-48d5575e0c9c" -o taoyuan/parking.json
+        run: |
+          curl -L --insecure "https://data.tycg.gov.tw/opendata/datalist/datasetMeta/download?id=c2b2f59a-5310-4ad0-8a07-8b9bb8422d58&rid=75F883aa-c771-417a-9a80-48d5575e0c9c" -o taoyuan/parking.json
 
       - name: Download Taichung Parking
         run: |
           curl -L "https://datacenter.taichung.gov.tw/Swagger/OpenData/892b7dc3-f9c7-47e6-8e7f-3cfa89d1d512" -o taichung/parking.json
 
       - name: Download Tainan Parking
-        run: |
-          curl -L "https://tbike.tainan.gov.tw:8081/gbopenapi/parking/getParkingData" -o tainan/parking.json
+        run: | 
+          curl -L "https://api.tainan.gov.tw/parking/v1/OffStreet/CarPark" -o tainan/parking.json
 
       - name: Download Kaohsiung Parking
         run: |
