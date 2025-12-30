@@ -29,10 +29,9 @@ jobs:
       - name: Download New Taipei Parking
         run: |
           curl -L "https://data.ntpc.gov.tw/api/datasets/010C3921-3B8C-43C6-B787-A0CC4EBC57BB/json/preview" -o newtaipei/parking.json
-
+      
       - name: Download Taoyuan Parking
-        run: |
-          curl -L "https://data.tycg.gov.tw/opendata/datalist/datasetMeta/download?id=cfb2f5a9-5310-4ad0-8a07-8b9bb8422d5b&rid=7f5883aa-c771-417a-9a09-48d557f5e0c9" -o taoyuan/parking.json
+        run: curl -L --insecure "https://data.tycg.gov.tw/opendata/datalist/datasetMeta/download?id=c2b2f59a-5310-4ad0-8a07-8b9bb8422d58&rid=75F883aa-c771-417a-9a80-48d5575e0c9c" -o taoyuan/parking.json
 
       - name: Download Taichung Parking
         run: |
