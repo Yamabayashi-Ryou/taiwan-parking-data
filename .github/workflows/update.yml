@@ -39,8 +39,9 @@ jobs:
           curl -L "https://datacenter.taichung.gov.tw/Swagger/OpenData/892b7dc3-f9c7-47e6-8e7f-3cfa89d1d512" -o taichung/parking.json
 
       - name: Download Tainan Parking
-        run: | 
-          curl -L "https://api.tainan.gov.tw/parking/v1/OffStreet/CarPark" -o tainan/parking.json
+        run: |
+          curl -L "https://parking.tainan.gov.tw/OpenData/OffStreetParking.json" -o tainan/parking.json
+
 
       - name: Download Kaohsiung Parking
         run: |
