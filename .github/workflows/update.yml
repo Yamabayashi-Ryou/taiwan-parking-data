@@ -1,0 +1,55 @@
+name: Update Taiwan Parking Data
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # 每10分鐘執行
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create folders
+        run: |
+          mkdir -p taipei
+          mkdir -p newtaipei
+          mkdir -p taoyuan
+          mkdir -p taichung
+          mkdir -p tainan
+          mkdir -p kaohsiung
+
+      - name: Download Taipei Parking
+        run: |
+          curl -L "https://tcgbusfs.blob.core.windows.net/blobtcmsv/TCMSV_alldesc.xml" -o taipei/desc.xml
+          curl -L "https://tcgbusfs.blob.core.windows.net/blobtcmsv/TCMSV_allavailable.xml" -o taipei/avail.xml
+
+      - name: Download New Taipei Parking
+        run: |
+          curl -L "https://data.ntpc.gov.tw/api/datasets/010C3921-3B8C-43C6-B787-A0CC4EBC57BB/json/preview" -o newtaipei/parking.json
+
+      - name: Download Taoyuan Parking
+        run: |
+          curl -L "https://data.tycg.gov.tw/opendata/datalist/datasetMeta/download?id=cfb2f5a9-5310-4ad0-8a07-8b9bb8422d5b&rid=7f5883aa-c771-417a-9a09-48d557f5e0c9" -o taoyuan/parking.json
+
+      - name: Download Taichung Parking
+        run: |
+          curl -L "https://datacenter.taichung.gov.tw/Swagger/OpenData/892b7dc3-f9c7-47e6-8e7f-3cfa89d1d512" -o taichung/parking.json
+
+      - name: Download Tainan Parking
+        run: |
+          curl -L "https://tbike.tainan.gov.tw:8081/gbopenapi/parking/getParkingData" -o tainan/parking.json
+
+      - name: Download Kaohsiung Parking
+        run: |
+          curl -L "https://odws.kcg.gov.tw/001/Upload/25/opendata/9046/155/da159fff-6a99-4403-83c3-19bf3bf4470c.json" -o kaohsiung/parking.json
+
+      - name: Commit and push
+        run: |
+          git config --global user.email "bot@example.com"
+          git config --global user.name "Parking Bot"
+          git add .
+          git commit -m "Update Taiwan Parking Data" || exit 0
+          git push
